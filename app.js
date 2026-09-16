@@ -1,5 +1,5 @@
 // Google OAuth Setup
-const GOOGLE_CLIENT_ID = "110805482327348418790.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = "483421872463-fbpp0fe6s8r91h1i62vfubdls19auafg.apps.googleusercontent.com";
 const SPREADSHEET_ID = "1R9tTJ5qFplGBowABDZSY85jeGdQbkV1ICkzuQygEodE";
 
 const SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets";
@@ -299,7 +299,7 @@ function renderFoodCategories() {
     label.textContent = category.label;
 
     const examples = document.createElement("span");
-    examples.textContent = category.examples;
+    examples.textContent = `${category.description} ${category.exclude}`;
 
     button.append(label, examples);
 
@@ -349,6 +349,11 @@ function getAccessToken() {
       return;
     }
 
+    if (accessToken) {
+      resolve(accessToken);
+      return;
+    }
+
     if (!tokenClient) {
       tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: GOOGLE_CLIENT_ID,
@@ -376,7 +381,7 @@ function getAccessToken() {
     }
 
     tokenClient.requestAccessToken({
-      prompt: accessToken ? "" : "consent"
+      prompt: "consent"
     });
   });
 }
@@ -386,31 +391,11 @@ async function appendToSheet(sheetName, row) {
     throw new Error("Google Sheet ID has not been configured.");
   }
 
-  const token = await getAccessToken();
-  const range = `${sheetName}!A1:ZZ`;
-  const url = new URL(
-    `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}:append`
-  );
-
-  url.searchParams.set("valueInputOption", "RAW");
-  url.searchParams.set("insertDataOption", "INSERT_ROWS");
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      values: [row]
-    })
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.error?.message || `Google Sheets error: ${response.status}`);
+  if (!accessToken) {
+    throw new Error("Google Sheets is not connected.");
   }
-}
+
+  const range = `${sheetName}!A1:ZZ`;
 
 async function syncPendingEntries() {
   const pending = getPendingEntries();
