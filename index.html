@@ -11,11 +11,19 @@
 <body>
   <main class="app">
     <header>
-      <h1>Symptom Logger</h1>
+      <h1>Health Logger</h1>
       <button id="settingsButton" class="text-button" type="button">Settings</button>
     </header>
 
-    <section id="symptomScreen" class="screen">
+    <section id="homeScreen" class="screen">
+      <div class="home-actions">
+        <button id="logSymptomButton" class="home-button" type="button">Log symptom</button>
+        <button id="logFoodButton" class="home-button" type="button">Log food</button>
+      </div>
+    </section>
+
+    <section id="symptomScreen" class="screen hidden">
+      <button id="backToHomeFromSymptoms" class="back-button" type="button">← Home</button>
       <h2>What are you experiencing?</h2>
       <div id="symptomButtons" class="button-grid"></div>
     </section>
@@ -49,17 +57,40 @@
       </div>
     </section>
 
+    <section id="foodScreen" class="screen hidden">
+      <button id="backToHomeFromFood" class="back-button" type="button">← Home</button>
+      <h2>What did you eat?</h2>
+      <p class="instruction">Tap every category that applies.</p>
+      <div id="foodButtons" class="food-grid"></div>
+      <button id="continueFood" class="primary-button" type="button">Done</button>
+    </section>
+
+    <section id="foodNoteScreen" class="screen hidden">
+      <button id="backToFood" class="back-button" type="button">← Food</button>
+      <h2>Anything else?</h2>
+      <textarea id="foodNote" rows="4" placeholder="Optional — e.g. specific food or meal"></textarea>
+      <div class="note-actions">
+        <button id="skipFoodNote" class="secondary-button" type="button">Skip</button>
+        <button id="saveFoodButton" class="primary-button" type="button">Save</button>
+      </div>
+    </section>
+
     <section id="settingsScreen" class="screen hidden">
-      <button id="closeSettings" class="back-button" type="button">← Logger</button>
+      <button id="closeSettings" class="back-button" type="button">← Home</button>
       <h2>Data</h2>
-      <p><span id="entryCount">0</span> entries stored on this device.</p>
-      <button id="exportButton" class="primary-button" type="button">Export CSV</button>
-      <button id="clearButton" class="danger-button" type="button">Delete all data</button>
+      <p id="connectionStatus">Not connected to Google Sheets</p>
+      <p><span id="pendingCount">0</span> entries waiting to sync.</p>
+      <button id="connectButton" class="primary-button" type="button">Connect Google Sheets</button>
+      <button id="syncButton" class="secondary-button" type="button">Sync pending entries</button>
+      <p class="settings-note">
+        Entries are sent to your Google Sheet after you connect. A small local queue is kept only for entries that have not synced yet.
+      </p>
     </section>
 
     <p id="status" class="status" aria-live="polite"></p>
   </main>
 
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="app.js"></script>
 </body>
 </html>

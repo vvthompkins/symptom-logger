@@ -60,7 +60,22 @@ button {
   margin-bottom: 20px;
 }
 
-.button-grid {
+.home-actions {
+  display: grid;
+  gap: 16px;
+  margin-top: 48px;
+}
+
+.home-button {
+  min-height: 100px;
+  background: #e5e7eb;
+  color: #111827;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.button-grid,
+.food-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
@@ -73,9 +88,41 @@ button {
   color: #111827;
 }
 
-.button-grid button.selected {
+.button-grid button.selected,
+.food-button.selected {
   outline: 3px solid #111827;
   background: #d1d5db;
+}
+
+.food-grid {
+  grid-template-columns: 1fr;
+}
+
+.food-button {
+  min-height: 70px;
+  padding: 12px 14px;
+  background: #e5e7eb;
+  color: #111827;
+  text-align: left;
+}
+
+.food-button strong,
+.food-button span {
+  display: block;
+}
+
+.food-button strong {
+  margin-bottom: 4px;
+}
+
+.food-button span {
+  color: #4b5563;
+  font-size: 0.875rem;
+}
+
+.instruction,
+.settings-note {
+  color: #4b5563;
 }
 
 .severity-grid {
@@ -91,8 +138,7 @@ button {
 }
 
 .primary-button,
-.secondary-button,
-.danger-button {
+.secondary-button {
   width: 100%;
   min-height: 52px;
   margin-top: 12px;
@@ -106,11 +152,6 @@ button {
 .secondary-button {
   background: #e5e7eb;
   color: #111827;
-}
-
-.danger-button {
-  background: #fee2e2;
-  color: #991b1b;
 }
 
 textarea {
@@ -149,14 +190,23 @@ textarea {
   }
 
   .button-grid button,
+  .food-button,
+  .home-button,
   .severity-grid button,
   .secondary-button {
     background: #374151;
     color: #f9fafb;
   }
 
-  .button-grid button.selected {
+  .button-grid button.selected,
+  .food-button.selected {
     background: #4b5563;
+  }
+
+  .food-button span,
+  .instruction,
+  .settings-note {
+    color: #d1d5db;
   }
 
   textarea {

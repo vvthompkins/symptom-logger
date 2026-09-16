@@ -1,66 +1,79 @@
-# Symptom Logger
+# Health Logger
 
-A deliberately small, local-first symptom event logger.
+A small static health and food logger. The app runs in the browser and writes data to two tabs in a Google Sheet using Google's browser OAuth flow.
 
-## What it does
+## 1. Create the Google Sheet
 
-1. Choose a symptom.
-2. If that symptom has details, choose one or more details or skip.
-3. Choose severity from 1–4.
-4. Optionally add a note.
-5. Save.
+Create a Google Sheet with two tabs named exactly:
 
-Each entry gets an automatic timestamp.
+- `Symptoms`
+- `Food`
 
-Data is stored in the browser's `localStorage` on the device. There is no account, server, database, or external API.
+Put these headers in row 1 of `Symptoms`:
 
-Use **Settings → Export CSV** to export the data.
-
-## Editing symptoms
-
-The symptom and detail choices live at the top of `app.js` in the `symptoms` object.
-
-For example:
-
-```js
-pain: {
-  label: "Pain",
-  details: [
-    "Back",
-    "Hips",
-    "Legs"
-  ]
-}
+```text
+timestamp | symptom | details | severity | note
 ```
 
-Add or remove strings from `details` to change the buttons.
+Put these headers in row 1 of `Food`:
 
-## Running locally
+```text
+timestamp | wheat_grains | onion_garlic | legumes | high_fodmap_fruit | high_fodmap_vegetables | high_fodmap_sweeteners | dairy | high_fat | spicy | caffeine | alcohol | carbonated | fermented_aged | cured_processed | leftovers | note
+```
 
-Because this is a PWA, it should be served over HTTP/HTTPS rather than opened directly as a `file://` URL.
+## 2. Create Google OAuth credentials
 
-For example, from this directory:
+In Google Cloud:
+
+1. Create or select a project.
+2. Enable the Google Sheets API.
+3. Configure the Google Auth Platform / OAuth consent screen.
+4. Create an OAuth client with application type **Web application**.
+5. Add your local development origin, for example:
+   `http://localhost:8000`
+6. Add your GitHub Pages origin once you know it, for example:
+   `https://YOUR-USERNAME.github.io`
+7. Copy the OAuth client ID.
+
+For this personal app, the Google Sheet itself remains protected by your Google account. The client ID is not a password or secret; Google expects browser applications to use it.
+
+## 3. Configure the app
+
+Open `app.js` and replace:
+
+```javascript
+const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com";
+const SPREADSHEET_ID = "YOUR_GOOGLE_SHEET_ID";
+```
+
+with your OAuth client ID and the ID of your Google Sheet.
+
+The spreadsheet ID is the long string in the Google Sheets URL between `/d/` and `/edit`.
+
+## 4. Run locally
+
+From this directory:
 
 ```bash
-python -m http.server 8000
+python3 -m http.server 8000
 ```
 
 Then open:
 
+```text
 http://localhost:8000
+```
 
-For phone installation, the site needs to be hosted over HTTPS. A private GitHub repository does not automatically provide a publicly accessible GitHub Pages site; if the repository remains private, use another private hosting option or run it locally on your own network.
+Go to **Settings → Connect Google Sheets** and authorize the app.
 
-## Deliberate non-features
+## Data behavior
 
-This project does not currently include:
+Every symptom and food event gets an ISO timestamp when it is saved.
 
-- symptom scoring
-- dashboards
-- reminders
-- notifications
-- wearable integrations
-- cloud syncing
-- accounts
-- AI
-- automatic interpretation
+Successfully synced entries live in Google Sheets. If an entry cannot be synced immediately, the app keeps that unsynced entry in a small local queue and tries again when the connection is available.
+
+The local queue is not the permanent data store. Google Sheets is the source of truth after an entry has synced.
+
+## Food categories
+
+The food tracker records concrete exposures rather than asking for a general "high FODMAP" or "other" category. The categories can be mapped to whatever FODMAP or other food-exposure taxonomy you want during later analysis.

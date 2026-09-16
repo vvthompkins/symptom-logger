@@ -1,4 +1,4 @@
-const CACHE_NAME = "symptom-logger-v1";
+const CACHE_NAME = "health-logger-v2";
 const FILES = [
   "./",
   "./index.html",
@@ -8,12 +8,26 @@ const FILES = [
 ];
 
 self.addEventListener("install", event => {
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(FILES)));
+});
+
+self.addEventListener("activate", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(FILES))
+    caches.keys().then(keys =>
+      Promise.all(
+        keys
+          .filter(key => key !== CACHE_NAME)
+          .map(key => caches.delete(key))
+      )
+    )
   );
 });
 
 self.addEventListener("fetch", event => {
+  if (event.request.url.includes("accounts.google.com") || event.request.url.includes("googleapis.com")) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then(cached => cached || fetch(event.request))
   );

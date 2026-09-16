@@ -1,4 +1,11 @@
-// Edit this object to change the symptom and detail choices.
+// Google OAuth Setup
+const GOOGLE_CLIENT_ID = "110805482327348418790.apps.googleusercontent.com";
+const SPREADSHEET_ID = "1R9tTJ5qFplGBowABDZSY85jeGdQbkV1ICkzuQygEodE";
+
+const SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets";
+const PENDING_KEY = "symptomLoggerPendingEntries";
+
+// Edit these objects to change the symptom and food choices.
 const symptoms = {
   fatigue: {
     label: "Fatigue",
@@ -14,9 +21,6 @@ const symptoms = {
       "Head",
       "Joints",
       "Widespread",
-      "Skin",
-      "Hands",
-      "Neck",
       "Other"
     ]
   },
@@ -58,7 +62,83 @@ const symptoms = {
   }
 };
 
-const STORAGE_KEY = "symptomLoggerEntries";
+const foodCategories = [
+  {
+    key: "wheat_grains",
+    label: "Wheat / grains",
+    examples: "Bread, pasta, tortillas, baked goods"
+  },
+  {
+    key: "onion_garlic",
+    label: "Onion / garlic",
+    examples: "Onion, garlic, shallots, leek, sauces"
+  },
+  {
+    key: "legumes",
+    label: "Legumes",
+    examples: "Beans, chickpeas, lentils"
+  },
+  {
+    key: "high_fodmap_fruit",
+    label: "Certain fruit",
+    examples: "Apples, pears, mango, watermelon, stone fruit"
+  },
+  {
+    key: "high_fodmap_vegetables",
+    label: "Certain vegetables",
+    examples: "Cauliflower, mushrooms, etc."
+  },
+  {
+    key: "high_fodmap_sweeteners",
+    label: "Certain sweeteners",
+    examples: "Honey, HFCS, sorbitol, xylitol"
+  },
+  {
+    key: "dairy",
+    label: "Dairy",
+    examples: "Milk, yogurt, cheese, cream"
+  },
+  {
+    key: "high_fat",
+    label: "High-fat / fried",
+    examples: "Fried food, very rich or fatty meals"
+  },
+  {
+    key: "spicy",
+    label: "Spicy",
+    examples: "Hot peppers, hot sauce, spicy dishes"
+  },
+  {
+    key: "caffeine",
+    label: "Caffeine",
+    examples: "Coffee, tea, energy drinks"
+  },
+  {
+    key: "alcohol",
+    label: "Alcohol",
+    examples: "Beer, wine, liquor"
+  },
+  {
+    key: "carbonated",
+    label: "Carbonated",
+    examples: "Soda, sparkling water, seltzer"
+  },
+  {
+    key: "fermented_aged",
+    label: "Fermented / aged",
+    examples: "Fermented foods, aged cheese"
+  },
+  {
+    key: "cured_processed",
+    label: "Cured / processed",
+    examples: "Cured meats, processed meats"
+  },
+  {
+    key: "leftovers",
+    label: "Leftovers / long-stored",
+    examples: "Food stored for a while before eating"
+  }
+];
 
 let current = {
   symptom: null,
@@ -66,11 +146,18 @@ let current = {
   severity: null
 };
 
+let currentFood = {};
+let tokenClient = null;
+let accessToken = null;
+
 const screens = {
+  home: document.getElementById("homeScreen"),
   symptom: document.getElementById("symptomScreen"),
   detail: document.getElementById("detailScreen"),
   severity: document.getElementById("severityScreen"),
   note: document.getElementById("noteScreen"),
+  food: document.getElementById("foodScreen"),
+  foodNote: document.getElementById("foodNoteScreen"),
   settings: document.getElementById("settingsScreen")
 };
 
@@ -82,12 +169,18 @@ function showScreen(name) {
   status.textContent = "";
 }
 
-function getEntries() {
-  return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+function getPendingEntries() {
+  return JSON.parse(localStorage.getItem(PENDING_KEY) || "[]");
 }
 
-function saveEntries(entries) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+function savePendingEntries(entries) {
+  localStorage.setItem(PENDING_KEY, JSON.stringify(entries));
+}
+
+function addPendingEntry(entry) {
+  const entries = getPendingEntries();
+  entries.push(entry);
+  savePendingEntries(entries);
 }
 
 function renderSymptoms() {
@@ -112,7 +205,6 @@ function selectSymptom(key) {
 
   const symptom = symptoms[key];
 
-  // If there are no details, skip directly to severity.
   if (symptom.details.length === 0) {
     showScreen("severity");
     return;
@@ -148,21 +240,175 @@ function renderDetails(details) {
   });
 }
 
-function saveEntry(note = "") {
-  const entries = getEntries();
+function renderFoodCategories() {
+  const container = document.getElementById("foodButtons");
+  container.innerHTML = "";
 
-  entries.push({
+  foodCategories.forEach(category => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "food-button";
+    button.dataset.key = category.key;
+
+    const label = document.createElement("strong");
+    label.textContent = category.label;
+
+    const examples = document.createElement("span");
+    examples.textContent = category.examples;
+
+    button.append(label, examples);
+
+    button.addEventListener("click", () => {
+      button.classList.toggle("selected");
+      currentFood[category.key] = button.classList.contains("selected");
+    });
+
+    container.appendChild(button);
+  });
+}
+
+function resetFood() {
+  currentFood = Object.fromEntries(
+    foodCategories.map(category => [category.key, false])
+  );
+
+  document.querySelectorAll("#foodButtons button").forEach(button => {
+    button.classList.remove("selected");
+  });
+
+  document.getElementById("foodNote").value = "";
+}
+
+function getFoodRow(entry) {
+  return [
+    entry.timestamp,
+    ...foodCategories.map(category => entry[category.key]),
+    entry.note
+  ];
+}
+
+function getSymptomRow(entry) {
+  return [
+    entry.timestamp,
+    entry.symptom,
+    entry.details.join("; "),
+    entry.severity,
+    entry.note
+  ];
+}
+
+function getAccessToken() {
+  return new Promise((resolve, reject) => {
+    if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.startsWith("YOUR_")) {
+      reject(new Error("Google OAuth client ID has not been configured."));
+      return;
+    }
+
+    if (!tokenClient) {
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope: SHEETS_SCOPE,
+        callback: response => {
+          if (response.error) {
+            reject(new Error(response.error_description || response.error));
+            return;
+          }
+
+          accessToken = response.access_token;
+          resolve(accessToken);
+        }
+      });
+    } else {
+      tokenClient.callback = response => {
+        if (response.error) {
+          reject(new Error(response.error_description || response.error));
+          return;
+        }
+
+        accessToken = response.access_token;
+        resolve(accessToken);
+      };
+    }
+
+    tokenClient.requestAccessToken({
+      prompt: accessToken ? "" : "consent"
+    });
+  });
+}
+
+async function appendToSheet(sheetName, row) {
+  if (!SPREADSHEET_ID || SPREADSHEET_ID.startsWith("YOUR_")) {
+    throw new Error("Google Sheet ID has not been configured.");
+  }
+
+  const token = await getAccessToken();
+  const range = `${sheetName}!A1:ZZ`;
+  const url = new URL(
+    `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}:append`
+  );
+
+  url.searchParams.set("valueInputOption", "RAW");
+  url.searchParams.set("insertDataOption", "INSERT_ROWS");
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      values: [row]
+    })
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error?.message || `Google Sheets error: ${response.status}`);
+  }
+}
+
+async function syncPendingEntries() {
+  const pending = getPendingEntries();
+
+  if (pending.length === 0) return;
+
+  const remaining = [];
+
+  for (const entry of pending) {
+    try {
+      const row = entry.type === "symptom"
+        ? getSymptomRow(entry)
+        : getFoodRow(entry);
+      const sheet = entry.type === "symptom" ? "Symptoms" : "Food";
+
+      await appendToSheet(sheet, row);
+    } catch (error) {
+      remaining.push(entry);
+      break;
+    }
+  }
+
+  savePendingEntries(remaining);
+  updateDataStatus();
+
+  if (remaining.length === 0 && pending.length > 0) {
+    status.textContent = "All pending entries synced to Google Sheets.";
+  }
+}
+
+async function saveSymptomEntry(note = "") {
+  const entry = {
+    type: "symptom",
     timestamp: new Date().toISOString(),
     symptom: current.symptom,
     details: current.details,
     severity: current.severity,
     note: note.trim()
-  });
+  };
 
-  saveEntries(entries);
+  addPendingEntry(entry);
 
   const symptomLabel = symptoms[current.symptom].label;
-  status.textContent = `Saved: ${symptomLabel} · ${current.severity}/4`;
 
   current = {
     symptom: null,
@@ -171,11 +417,46 @@ function saveEntry(note = "") {
   };
 
   document.getElementById("note").value = "";
-  showScreen("symptom");
+  showScreen("home");
+  status.textContent = `Saved: ${symptomLabel} · ${entry.severity}/4`;
 
-  // showScreen clears status, so restore it after the reset.
-  status.textContent = `Saved: ${symptomLabel} · ${entries.at(-1).severity}/4`;
+  syncPendingEntries().catch(() => {});
 }
+
+async function saveFoodEntry(note = "") {
+  const entry = {
+    type: "food",
+    timestamp: new Date().toISOString(),
+    ...currentFood,
+    note: note.trim()
+  };
+
+  addPendingEntry(entry);
+  resetFood();
+  showScreen("home");
+  status.textContent = "Food logged.";
+
+  syncPendingEntries().catch(() => {});
+}
+
+function updateDataStatus() {
+  const pendingCount = getPendingEntries().length;
+  document.getElementById("pendingCount").textContent = pendingCount;
+
+  const connected = Boolean(accessToken);
+  document.getElementById("connectionStatus").textContent = connected
+    ? "Connected to Google Sheets"
+    : "Not connected to Google Sheets";
+}
+
+document.getElementById("logSymptomButton").addEventListener("click", () => {
+  showScreen("symptom");
+});
+
+document.getElementById("logFoodButton").addEventListener("click", () => {
+  resetFood();
+  showScreen("food");
+});
 
 document.getElementById("continueDetail").addEventListener("click", () => {
   showScreen("severity");
@@ -188,6 +469,10 @@ document.getElementById("skipDetail").addEventListener("click", () => {
 
 document.getElementById("backToSymptoms").addEventListener("click", () => {
   showScreen("symptom");
+});
+
+document.getElementById("backToHomeFromSymptoms").addEventListener("click", () => {
+  showScreen("home");
 });
 
 document.getElementById("backToDetail").addEventListener("click", () => {
@@ -213,68 +498,72 @@ document.getElementById("backToSeverity").addEventListener("click", () => {
 });
 
 document.getElementById("skipNote").addEventListener("click", () => {
-  saveEntry();
+  saveSymptomEntry();
 });
 
 document.getElementById("saveButton").addEventListener("click", () => {
-  saveEntry(document.getElementById("note").value);
+  saveSymptomEntry(document.getElementById("note").value);
+});
+
+document.getElementById("continueFood").addEventListener("click", () => {
+  showScreen("foodNote");
+});
+
+document.getElementById("backToHomeFromFood").addEventListener("click", () => {
+  showScreen("home");
+});
+
+document.getElementById("backToFood").addEventListener("click", () => {
+  showScreen("food");
+});
+
+document.getElementById("skipFoodNote").addEventListener("click", () => {
+  saveFoodEntry();
+});
+
+document.getElementById("saveFoodButton").addEventListener("click", () => {
+  saveFoodEntry(document.getElementById("foodNote").value);
 });
 
 document.getElementById("settingsButton").addEventListener("click", () => {
-  document.getElementById("entryCount").textContent = getEntries().length;
+  updateDataStatus();
   showScreen("settings");
 });
 
 document.getElementById("closeSettings").addEventListener("click", () => {
-  showScreen("symptom");
+  showScreen("home");
 });
 
-document.getElementById("exportButton").addEventListener("click", () => {
-  const entries = getEntries();
-
-  if (entries.length === 0) {
-    status.textContent = "There is no data to export.";
-    return;
+document.getElementById("connectButton").addEventListener("click", async () => {
+  try {
+    await getAccessToken();
+    updateDataStatus();
+    status.textContent = "Connected to Google Sheets.";
+    await syncPendingEntries();
+  } catch (error) {
+    status.textContent = error.message;
   }
-
-  const header = ["timestamp", "symptom", "details", "severity", "note"];
-
-  const rows = entries.map(entry => [
-    entry.timestamp,
-    entry.symptom,
-    entry.details.join("; "),
-    entry.severity,
-    entry.note
-  ]);
-
-  const csv = [header, ...rows]
-    .map(row => row.map(value => `"${String(value).replaceAll('"', '""')}"`).join(","))
-    .join("\n");
-
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-
-  link.href = url;
-  link.download = `symptoms-${new Date().toISOString().slice(0, 10)}.csv`;
-  link.click();
-
-  URL.revokeObjectURL(url);
 });
 
-document.getElementById("clearButton").addEventListener("click", () => {
-  const confirmed = window.confirm(
-    "Delete all symptom data stored on this device? This cannot be undone."
-  );
-
-  if (!confirmed) return;
-
-  localStorage.removeItem(STORAGE_KEY);
-  document.getElementById("entryCount").textContent = "0";
-  status.textContent = "All data deleted.";
+document.getElementById("syncButton").addEventListener("click", async () => {
+  try {
+    await syncPendingEntries();
+    if (getPendingEntries().length > 0) {
+      status.textContent = "Some entries could not be synced. Check your Google Sheets connection.";
+    }
+  } catch (error) {
+    status.textContent = error.message;
+  }
 });
 
 renderSymptoms();
+renderFoodCategories();
+resetFood();
+updateDataStatus();
+
+window.addEventListener("online", () => {
+  syncPendingEntries().catch(() => {});
+});
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
