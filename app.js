@@ -14,12 +14,16 @@ const symptoms = {
   pain: {
     label: "Pain",
     details: [
-      "Back",
-      "Hips",
-      "Legs",
-      "Abdomen",
-      "Head",
-      "Joints",
+      "Lower Back",
+      "Upper Back",
+      "Mid Back",
+      "Neck",
+      "Shoulder(s)",
+      "Hip(s)",
+      "Knee(s)",
+      "Hand(s)",
+      "Feet",
+      "Skin",
       "Widespread",
       "Other"
     ]
@@ -32,29 +36,29 @@ const symptoms = {
       "Constipation",
       "Diarrhea",
       "Nausea",
-      "Reflux",
+      "Heartburn",
       "Other"
     ]
   },
-  dizziness: {
-    label: "Dizziness",
-    details: []
-  },
-  brain_fog: {
-    label: "Brain fog",
-    details: []
+  brain: {
+    label: "Brain",
+    details: [
+      "Brain fog",
+      "Depression",
+      "Anxiety",
+      "Migraine Aura",
+      "Migraine",
+      "Other"
+    ]
   },
   heart: {
-    label: "Heart",
+    label: "Heart and circulation",
     details: [
       "Palpitations",
-      "Fast heart rate",
+      "Tachycardia",
+      "Lightheadedness",
       "Other"
     ]
-  },
-  headache: {
-    label: "Headache",
-    details: []
   },
   other: {
     label: "Other",
@@ -396,6 +400,31 @@ async function appendToSheet(sheetName, row) {
   }
 
   const range = `${sheetName}!A1:ZZ`;
+  const url = new URL(
+    `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}:append`
+  );
+
+  url.searchParams.set("valueInputOption", "RAW");
+  url.searchParams.set("insertDataOption", "INSERT_ROWS");
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      values: [row]
+    })
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(
+      error.error?.message || `Google Sheets error: ${response.status}`
+    );
+  }
+}
 
 async function syncPendingEntries() {
   const pending = getPendingEntries();

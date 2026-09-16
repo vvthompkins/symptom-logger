@@ -1,4 +1,4 @@
-const CACHE_NAME = "health-logger-v2";
+const CACHE_NAME = "health-logger-v5";
 const FILES = [
   "./",
   "./index.html",
