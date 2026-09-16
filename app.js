@@ -64,79 +64,124 @@ const symptoms = {
 
 const foodCategories = [
   {
-    key: "wheat_grains",
-    label: "Wheat / grains",
-    examples: "Bread, pasta, tortillas, baked goods"
+    key: "wheat_products",
+    label: "Wheat / wheat products",
+    description:
+      "Wheat bread, regular pasta, flour tortillas, crackers, cookies, cakes, pastries, breadcrumbs, wheat-based cereal.",
+    exclude:
+      "Do not select for rice, oats, corn, quinoa, buckwheat, or potatoes."
   },
   {
     key: "onion_garlic",
     label: "Onion / garlic",
-    examples: "Onion, garlic, shallots, leek, sauces"
+    description:
+      "Onion, garlic, shallots, leeks (white/light-green parts), onion or garlic powder, and sauces or seasoning blends containing them.",
+    exclude:
+      "Do not select for herbs or spices that do not contain onion or garlic."
   },
   {
     key: "legumes",
     label: "Legumes",
-    examples: "Beans, chickpeas, lentils"
+    description:
+      "Beans, chickpeas, lentils, split peas, hummus, and bean-based dips or spreads.",
+    exclude:
+      "Do not select for peanuts or ordinary green peas."
   },
   {
     key: "high_fodmap_fruit",
-    label: "Certain fruit",
-    examples: "Apples, pears, mango, watermelon, stone fruit"
+    label: "High-FODMAP fruit",
+    description:
+      "Apples, pears, mango, watermelon, cherries, peaches, nectarines, plums, apricots, and dried versions of these fruits.",
+    exclude:
+      "Do not select for berries, citrus, grapes, kiwi, pineapple, strawberries, or bananas."
   },
   {
     key: "high_fodmap_vegetables",
-    label: "Certain vegetables",
-    examples: "Cauliflower, mushrooms, etc."
+    label: "High-FODMAP vegetables",
+    description:
+      "Cauliflower, mushrooms, asparagus, artichokes, and other vegetables known to be high-FODMAP at the amount eaten.",
+    exclude:
+      "Do not select for carrots, spinach, bell peppers, tomatoes, potatoes, zucchini, cucumber, or lettuce."
   },
   {
     key: "high_fodmap_sweeteners",
-    label: "Certain sweeteners",
-    examples: "Honey, HFCS, sorbitol, xylitol"
+    label: "High-FODMAP sweeteners",
+    description:
+      "Honey, agave syrup, high-fructose corn syrup, sorbitol, mannitol, xylitol, maltitol, and isomalt.",
+    exclude:
+      "Do not select for ordinary table sugar, maple syrup, glucose, or dextrose."
   },
   {
     key: "dairy",
     label: "Dairy",
-    examples: "Milk, yogurt, cheese, cream"
+    description:
+      "Milk, ice cream, cream, yogurt, and fresh or soft cheeses.",
+    exclude:
+      "Do not select for lactose-free dairy or plant-based products unless another category applies."
   },
   {
     key: "high_fat",
     label: "High-fat / fried",
-    examples: "Fried food, very rich or fatty meals"
+    description:
+      "Deep-fried foods, very greasy foods, or meals that are obviously high in added fat.",
+    exclude:
+      "Do not select simply because a meal contains some oil, butter, nuts, avocado, or another source of fat."
   },
   {
     key: "spicy",
     label: "Spicy",
-    examples: "Hot peppers, hot sauce, spicy dishes"
+    description:
+      "Hot peppers, chili flakes, cayenne, hot sauce, spicy salsa, or dishes that are noticeably hot/spicy.",
+    exclude:
+      "Do not select for ordinary black pepper or non-spicy herbs and spices."
   },
   {
     key: "caffeine",
     label: "Caffeine",
-    examples: "Coffee, tea, energy drinks"
+    description:
+      "Coffee, espresso, caffeinated tea, energy drinks, caffeinated soda, and other caffeinated drinks or foods.",
+    exclude:
+      "Do not select for decaf coffee or caffeine-free drinks."
   },
   {
     key: "alcohol",
     label: "Alcohol",
-    examples: "Beer, wine, liquor"
+    description:
+      "Beer, wine, liquor, cocktails, and other alcoholic drinks.",
+    exclude:
+      "Do not select for nonalcoholic drinks."
   },
   {
     key: "carbonated",
     label: "Carbonated",
-    examples: "Soda, sparkling water, seltzer"
+    description:
+      "Seltzer, sparkling water, soda, kombucha, and other carbonated drinks.",
+    exclude:
+      "Do not select for still water or other non-carbonated drinks."
   },
   {
     key: "fermented_aged",
     label: "Fermented / aged",
-    examples: "Fermented foods, aged cheese"
+    description:
+      "Yogurt, kefir, kimchi, sauerkraut, kombucha, fermented vegetables, aged cheeses, and fermented soy products.",
+    exclude:
+      "Do not select simply because a food is stored or cooked; use this for intentionally fermented or aged foods."
   },
   {
     key: "cured_processed",
     label: "Cured / processed",
-    examples: "Cured meats, processed meats"
+    description:
+      "Bacon, salami, pepperoni, prosciutto, sausage, hot dogs, deli meats, smoked meats, and similar cured or processed meats.",
+    exclude:
+      "Do not select for fresh, unprocessed meat, poultry, or fish."
   },
   {
     key: "leftovers",
     label: "Leftovers / long-stored",
-    examples: "Food stored for a while before eating"
+    description:
+      "Food cooked previously and refrigerated or stored for a substantial period before you ate it.",
+    exclude:
+      "Do not select for food cooked and eaten immediately."
   }
 ];
 
