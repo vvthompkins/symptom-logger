@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+  <title>Symptom Logger</title>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <h1>Symptom Logger</h1>
+      <button id="settingsButton" class="text-button" type="button">Settings</button>
+    </header>
+
+    <section id="symptomScreen" class="screen">
+      <h2>What are you experiencing?</h2>
+      <div id="symptomButtons" class="button-grid"></div>
+    </section>
+
+    <section id="detailScreen" class="screen hidden">
+      <button id="backToSymptoms" class="back-button" type="button">← Symptoms</button>
+      <h2 id="detailHeading"></h2>
+      <div id="detailButtons" class="button-grid"></div>
+      <button id="skipDetail" class="secondary-button" type="button">Skip</button>
+      <button id="continueDetail" class="primary-button" type="button">Continue</button>
+    </section>
+
+    <section id="severityScreen" class="screen hidden">
+      <button id="backToDetail" class="back-button" type="button">← Back</button>
+      <h2>How severe?</h2>
+      <div id="severityButtons" class="severity-grid">
+        <button type="button" data-severity="1">1</button>
+        <button type="button" data-severity="2">2</button>
+        <button type="button" data-severity="3">3</button>
+        <button type="button" data-severity="4">4</button>
+      </div>
+    </section>
+
+    <section id="noteScreen" class="screen hidden">
+      <button id="backToSeverity" class="back-button" type="button">← Back</button>
+      <h2>Anything else?</h2>
+      <textarea id="note" rows="4" placeholder="Optional"></textarea>
+      <div class="note-actions">
+        <button id="skipNote" class="secondary-button" type="button">Skip</button>
+        <button id="saveButton" class="primary-button" type="button">Save</button>
+      </div>
+    </section>
+
+    <section id="settingsScreen" class="screen hidden">
+      <button id="closeSettings" class="back-button" type="button">← Logger</button>
+      <h2>Data</h2>
+      <p><span id="entryCount">0</span> entries stored on this device.</p>
+      <button id="exportButton" class="primary-button" type="button">Export CSV</button>
+      <button id="clearButton" class="danger-button" type="button">Delete all data</button>
+    </section>
+
+    <p id="status" class="status" aria-live="polite"></p>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
