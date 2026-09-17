@@ -2,7 +2,7 @@
 const GOOGLE_CLIENT_ID = "483421872463-fbpp0fe6s8r91h1i62vfubdls19auafg.apps.googleusercontent.com";
 const SPREADSHEET_ID = "1R9tTJ5qFplGBowABDZSY85jeGdQbkV1ICkzuQygEodE";
 
-const SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets";
+const SHEETS_SCOPE = "https://www.googleapis.com/auth/drive.file";
 const PENDING_KEY = "symptomLoggerPendingEntries";
 
 // Edit these objects to change the symptom and food choices.
