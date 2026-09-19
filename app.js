@@ -380,7 +380,7 @@ function getAccessToken () {
     }
 
     tokenClient.requestAccessToken({
-      prompt: 'consent'
+      prompt: ''
     })
   })
 }
